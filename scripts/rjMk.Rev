@@ -1,0 +1,56 @@
+morpho <- readDiscreteCharacterData("data/Livezey_et_Zusi_2007a.nex")
+taxa <- morpho.taxa()
+moves = VectorMoves()
+monitors = VectorMonitors()
+
+n_taxa <- taxa.size()
+
+num_branches <- 2 * n_taxa - 2
+
+alpha ~ dnUniform( 0, 1E6 )
+
+moves.append(mvScale(alpha, lambda=1, weight=2.0))
+rates_indicator ~ dnCategorical(simplex(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1));
+rates_vec <- v(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+rates_indicator.setValue(15);
+moves.append( mvRandomGeometricWalk(rates_indicator, weight=10.0, tune=FALSE) );
+rates := rates_vec[rates_indicator]
+
+site_rates := fnDiscretizeGamma(alpha, alpha, rates)
+
+
+source("scripts/model_Mk.Rev")
+
+
+
+     mymodel = model(phylogeny)
+
+
+
+     monitors.append(mnModel(filename="output/acrv.log", printgen=100))
+
+
+
+     monitors.append(mnFile(filename="output/acrv.trees", printgen=100,  phylogeny))
+
+
+
+     monitors.append(mnScreen(printgen=100))
+
+
+
+     mymcmc = mcmc(mymodel, monitors, moves, nrun=2, combine="mixed")
+
+
+     mymcmc.run(generations=50000)
+
+    trace = readTreeTrace("output/acrv.trees", burnin=.25)
+     mccTree(trace, "output/mcc.tre")
+
+
+
+     q()
+
+
+
+     q()
